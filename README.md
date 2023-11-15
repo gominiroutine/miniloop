@@ -6,10 +6,10 @@
 	var ctx = context.Background()
 	var count = 0
 	var ctxKey = "ContextTaskId"
-	var shopIdParam = time.Now().Unix()
+	var taskIdParam = int64(123456789)
 	miniloop.AddTask(
 		ctx,
-		shopIdParam,
+		taskIdParam,
 		func(tk *time.Ticker, taskId int64) {
 			fmt.Println("Working...", count, taskId)
 			count++
