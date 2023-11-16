@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var MapRunningCtx = map[int64]context.Context{}
+var mapRunningCtx = map[int64]context.Context{}
 
 type queueCtx struct {
 	ctx    context.Context
@@ -15,7 +15,7 @@ type queueCtx struct {
 
 func (e *queueCtx) run(execFunc func(*time.Ticker, int64), ctxKey string) {
 	if taskId, ok := e.ctx.Value(ctxKey).(int64); ok {
-		if MapRunningCtx[taskId] == nil {
+		if mapRunningCtx[taskId] == nil {
 			e.cancel()
 		} else {
 			execFunc(e.ticker, taskId)
@@ -45,10 +45,14 @@ func AddTask(ctx context.Context, taskId int64, execFunc func(*time.Ticker, int6
 	if ctx == nil || taskId == 0 || execFunc == nil {
 		return
 	}
-	if MapRunningCtx[taskId] == nil {
-		MapRunningCtx[taskId] = context.WithValue(ctx, ctxKey, taskId)
-		go start(MapRunningCtx[taskId], execFunc, ctxKey)
+	if mapRunningCtx[taskId] == nil {
+		mapRunningCtx[taskId] = context.WithValue(ctx, ctxKey, taskId)
+		go start(mapRunningCtx[taskId], execFunc, ctxKey)
 	}
+}
+
+func DeleteTask(taskId int64) {
+	delete(mapRunningCtx, taskId)
 }
 
 // USAGE DEMO
@@ -67,7 +71,7 @@ func AddTask(ctx context.Context, taskId int64, execFunc func(*time.Ticker, int6
 				tk.Reset(time.Second * 3)
 			}
 			if count > 12 {
-				delete(miniloop.MapRunningCtx, taskId)
+				miniloop.DeleteTask(taskId)
 				fmt.Println("Stopped", count, taskId)
 			}
 		},

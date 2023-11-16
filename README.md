@@ -17,7 +17,7 @@
 				tk.Reset(time.Second * 3)
 			}
 			if count > 12 {
-				delete(miniloop.MapRunningCtx, taskId)
+				miniloop.DeleteTask(taskId)
 				fmt.Println("Stopped", count, taskId)
 			}
 		},
