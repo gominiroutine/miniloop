@@ -28,7 +28,7 @@ func start(ctxParent context.Context, execFunc func(context.Context, *time.Ticke
 		ctx:     ctx,
 		cancel:  cancel,
 		ticker:  time.NewTicker(time.Second),
-		storage: new(map[string]interface{}),
+		storage: &map[string]interface{}{},
 	}
 loop:
 	for range r.ticker.C {
