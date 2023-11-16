@@ -1,4 +1,4 @@
-# miniloop
+![gomini.png](gomini.png)
 
 ```go
 // USAGE DEMO
