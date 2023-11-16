@@ -14,12 +14,10 @@ type queueCtx struct {
 }
 
 func (e *queueCtx) run(execFunc func(*time.Ticker, int64), ctxKey string) {
-	if taskId, ok := e.ctx.Value(ctxKey).(int64); ok {
-		if mapRunningCtx[taskId] == nil {
-			e.cancel()
-		} else {
-			execFunc(e.ticker, taskId)
-		}
+	if taskId, ok := e.ctx.Value(ctxKey).(int64); ok && taskId > 0 && mapRunningCtx[taskId] != nil {
+		execFunc(e.ticker, taskId)
+	} else {
+		e.cancel()
 	}
 }
 
