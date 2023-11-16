@@ -8,25 +8,27 @@ import (
 var mapRunningCtx = map[int64]context.Context{}
 
 type queueCtx struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	ticker *time.Ticker
+	ctx     context.Context
+	cancel  context.CancelFunc
+	ticker  *time.Ticker
+	storage *map[string]interface{}
 }
 
-func (e *queueCtx) run(execFunc func(*time.Ticker, int64), ctxKey string) {
+func (e *queueCtx) run(execFunc func(context.Context, *time.Ticker, int64, *map[string]interface{}), ctxKey string) {
 	if taskId, ok := e.ctx.Value(ctxKey).(int64); ok && taskId > 0 && mapRunningCtx[taskId] != nil {
-		execFunc(e.ticker, taskId)
+		execFunc(e.ctx, e.ticker, taskId, e.storage)
 	} else {
 		e.cancel()
 	}
 }
 
-func start(ctxParent context.Context, execFunc func(*time.Ticker, int64), ctxKey string) {
+func start(ctxParent context.Context, execFunc func(context.Context, *time.Ticker, int64, *map[string]interface{}), ctxKey string) {
 	var ctx, cancel = context.WithCancel(ctxParent)
 	r := &queueCtx{
-		ctx:    ctx,
-		cancel: cancel,
-		ticker: time.NewTicker(time.Second),
+		ctx:     ctx,
+		cancel:  cancel,
+		ticker:  time.NewTicker(time.Second),
+		storage: new(map[string]interface{}),
 	}
 loop:
 	for range r.ticker.C {
@@ -39,7 +41,7 @@ loop:
 	}
 }
 
-func AddTask(ctx context.Context, taskId int64, execFunc func(*time.Ticker, int64), ctxKey string) {
+func AddTask(ctx context.Context, taskId int64, execFunc func(context.Context, *time.Ticker, int64, *map[string]interface{}), ctxKey string) {
 	if ctx == nil || taskId == 0 || execFunc == nil {
 		return
 	}
@@ -62,7 +64,7 @@ func DeleteTask(taskId int64) {
 	miniloop.AddTask(
 		ctx,
 		taskIdParam,
-		func(tk *time.Ticker, taskId int64) {
+		func(ctx context.Context, tk *time.Ticker, taskId int64, storage *map[string]interface{}) {
 			fmt.Println("Working...", count, taskId)
 			count++
 			if count > 9 {

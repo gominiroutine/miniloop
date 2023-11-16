@@ -10,7 +10,7 @@
 	miniloop.AddTask(
 		ctx,
 		taskIdParam,
-		func(tk *time.Ticker, taskId int64) {
+		func(ctx context.Context, tk *time.Ticker, taskId int64, storage *map[string]interface{}) {
 			fmt.Println("Working...", count, taskId)
 			count++
 			if count > 9 {
